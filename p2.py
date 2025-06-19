@@ -20,10 +20,10 @@ class MyClient(discord.Client):
         self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
 
         if self.sentdex_guild is None:
-            print("❌ ERROR: El bot no encontró el servidor con ese ID.")
+            print(" ERROR: El bot no encontró el servidor con ese ID.")
         else:
-            print(f"✅ Bot conectado como {self.user}")
-            print(f"📌 Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
+            print(f" Bot conectado como {self.user}")
+            print(f" Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
 
     async def on_message(self, message):
         if message.author == self.user:
