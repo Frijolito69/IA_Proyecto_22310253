@@ -22,10 +22,10 @@ class MyClient(discord.Client):
         self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
 
         if self.sentdex_guild is None:
-            print("❌ ERROR: No se encontró el servidor con ese ID.")
+            print(" ERROR: No se encontró el servidor con ese ID.")
         else:
-            print(f"✅ Bot conectado como {self.user}")
-            print(f"📌 Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
+            print(f" Bot conectado como {self.user}")
+            print(f" Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -52,7 +52,7 @@ class MyClient(discord.Client):
             try:
                 await message.channel.send(file=discord.File("online.png"))
             except Exception as e:
-                await message.channel.send("❌ No se pudo enviar la gráfica.")
+                await message.channel.send(" No se pudo enviar la gráfica.")
                 print(f"Error al enviar la imagen: {e}")
 
         elif message.content.lower() == "bot.logout()":
