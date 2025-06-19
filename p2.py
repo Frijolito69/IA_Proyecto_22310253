@@ -5,7 +5,8 @@ import time
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import style
-import os  # 👈 necesario para buscar imágenes
+import os
+import requests  
 
 style.use("fivethirtyeight")
 
@@ -24,21 +25,20 @@ class MyClient(discord.Client):
         self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
 
         if self.sentdex_guild is None:
-            print("ERROR: No se encontró el servidor con ese ID.")
+            print(" ERROR: No se encontró el servidor con ese ID.")
         else:
-            print(f"Bot conectado como {self.user}")
-            print(f"Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
+            print(f" Bot conectado como {self.user}")
+            print(f" Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
 
     async def on_message(self, message):
         if message.author == self.user:
             return
 
         print(f"{message.channel}: {message.author}: {message.author.name}: {message.content}")
+        content = message.content.lower()
 
         if not hasattr(self, 'sentdex_guild') or self.sentdex_guild is None:
             self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
-
-        content = message.content.lower()
 
         if "hola" in content:
             await message.channel.send("HOLI")
@@ -85,6 +85,44 @@ class MyClient(discord.Client):
             except Exception as e:
                 await message.channel.send(" Ocurrió un error al enviar la imagen.")
                 print(f"Error en !meme: {e}")
+
+        elif content.startswith("!bitcoin"):
+            try:
+                moneda = "usd"
+                if "mxn" in content:
+                    moneda = "mxn"
+
+                url = f"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies={moneda}"
+                response = requests.get(url)
+                data = response.json()
+
+                if "bitcoin" in data and moneda in data["bitcoin"]:
+                    precio = data["bitcoin"][moneda]
+                    simbolo = "$" if moneda == "usd" else "MX$"
+                    await message.channel.send(f"💰 El precio actual de **Bitcoin (BTC)** es: **{simbolo}{precio:,.2f} {moneda.upper()}**")
+                else:
+                    await message.channel.send(" No se pudo obtener el precio de Bitcoin.")
+
+            except Exception as e:
+                await message.channel.send(" Error al obtener el precio de Bitcoin.")
+                print(f"Error en !bitcoin: {e}")
+
+        elif content == "!ayuda" or content == "!comandos":
+            ayuda = (
+                "📌 **Lista de comandos disponibles:**\n"
+                "• `hola` → El bot responde con un saludo\n"
+                "• `numero.miembros` → Muestra el número de miembros del servidor\n"
+                "• `bot.reporte_comunidad` → Reporte de usuarios online, inactivos y offline\n"
+                "• `bot.grafica` → Muestra la gráfica del estado de los usuarios\n"
+                "• `!dado` → Tira un dado virtual y te da un número entre 1 y 6\n"
+                "• `!votar` → Crea una votación con ✅ y ❌\n"
+                "• `!meme` o `!imagen` → Envía una imagen aleatoria de la carpeta `imagenes`\n"
+                "• `!bitcoin` → Muestra el precio actual del Bitcoin en USD\n"
+                "• `!bitcoin mxn` → Muestra el precio del Bitcoin en pesos mexicanos\n"
+                "• `bot.logout()` → Apaga el bot (solo si tienes permiso)\n"
+                "• `!ayuda` o `!comandos` → Muestra esta lista\n"
+            )
+            await message.channel.send(ayuda)
 
     def community_report(self):
         online = 0
