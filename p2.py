@@ -1,9 +1,11 @@
+import random
 import discord
 import asyncio
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import style
+import os  # 👈 necesario para buscar imágenes
 
 style.use("fivethirtyeight")
 
@@ -22,10 +24,10 @@ class MyClient(discord.Client):
         self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
 
         if self.sentdex_guild is None:
-            print(" ERROR: No se encontró el servidor con ese ID.")
+            print("ERROR: No se encontró el servidor con ese ID.")
         else:
-            print(f" Bot conectado como {self.user}")
-            print(f" Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
+            print(f"Bot conectado como {self.user}")
+            print(f"Servidor detectado: {self.sentdex_guild.name} ({self.sentdex_guild.id})")
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -36,27 +38,53 @@ class MyClient(discord.Client):
         if not hasattr(self, 'sentdex_guild') or self.sentdex_guild is None:
             self.sentdex_guild = discord.utils.get(self.guilds, id=1385104573340844113)
 
-        if "hola" in message.content.lower():
+        content = message.content.lower()
+
+        if "hola" in content:
             await message.channel.send("HOLI")
 
-        elif message.content.lower() == "numero.miembros":
+        elif content == "numero.miembros":
             await message.channel.send(f"```{self.sentdex_guild.member_count}```")
 
-        elif message.content.lower() == "bot.reporte_comunidad":
+        elif content == "bot.reporte_comunidad":
             online, idle, offline = self.community_report()
             await message.channel.send(
                 f"```Online: {online}\nIdle/busy/dnd: {idle}\nOffline: {offline}```"
             )
 
-        elif message.content.lower() == "bot.grafica":
+        elif content == "bot.grafica":
             try:
                 await message.channel.send(file=discord.File("online.png"))
             except Exception as e:
                 await message.channel.send(" No se pudo enviar la gráfica.")
                 print(f"Error al enviar la imagen: {e}")
 
-        elif message.content.lower() == "bot.logout()":
+        elif content == "bot.logout()":
             await self.close()
+
+        elif content == "!dado":
+            numero = random.randint(1, 6)
+            await message.channel.send(f"🎲 Sacaste un {numero}")
+
+        elif content.startswith("!votar"):
+            mensaje = await message.channel.send("🗳️ Votación: ✅ = Sí / ❌ = No")
+            await mensaje.add_reaction("✅")
+            await mensaje.add_reaction("❌")
+
+        elif content.startswith("!meme") or content.startswith("!imagen"):
+            try:
+                carpeta = "imagenes"
+                imagenes = [f for f in os.listdir(carpeta) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
+
+                if imagenes:
+                    seleccionada = random.choice(imagenes)
+                    ruta = os.path.join(carpeta, seleccionada)
+                    await message.channel.send(file=discord.File(ruta))
+                else:
+                    await message.channel.send(" No hay imágenes en la carpeta 'imagenes'.")
+            except Exception as e:
+                await message.channel.send(" Ocurrió un error al enviar la imagen.")
+                print(f"Error en !meme: {e}")
 
     def community_report(self):
         online = 0
@@ -99,7 +127,7 @@ class MyClient(discord.Client):
                     plt.legend()
                     plt.tight_layout()
                     plt.savefig("online.png")
-                    
+
                 await asyncio.sleep(5)
 
             except Exception as e:
